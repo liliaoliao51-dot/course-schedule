@@ -49,13 +49,17 @@ function onEdit(course) {
 }
 
 async function onSave(formData) {
-  if (editingCourse.value) {
-    await updateCourse(editingCourse.value.id, formData)
-  } else {
-    await createCourse(formData)
+  try {
+    if (editingCourse.value) {
+      await updateCourse(editingCourse.value.id, formData)
+    } else {
+      await createCourse(formData)
+    }
+    showForm.value = false
+    await loadCourses()
+  } catch (e) {
+    alert('保存失败：' + e.message)
   }
-  showForm.value = false
-  await loadCourses()
 }
 
 async function onDelete(id) {
