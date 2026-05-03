@@ -1,23 +1,27 @@
 <template>
-  <div class="flex flex-col h-full bg-gray-50">
+  <div class="flex flex-col h-full week-root">
     <!-- ===== 顶部：周数切换 ===== -->
-    <div class="sticky top-0 z-20 bg-white shadow-sm">
-      <div class="flex items-center justify-between px-4 py-2">
+    <div class="sticky top-0 z-20 week-header">
+      <div class="flex items-center justify-between px-5 pt-3 pb-1">
         <button
-          @click="weekNum > 1 && weekNum--"
+          @click="changeWeek(-1)"
           :disabled="weekNum <= 1"
-          class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 text-gray-500 disabled:opacity-30 transition"
+          class="nav-btn"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <span class="text-base font-semibold text-gray-800 select-none">第 {{ weekNum }} 周</span>
+        <div class="week-title-wrap">
+          <Transition name="week-fade" mode="out-in">
+            <span :key="weekNum" class="week-title">第 {{ weekNum }} 周</span>
+          </Transition>
+        </div>
         <button
-          @click="weekNum++"
-          class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 text-gray-500 transition"
+          @click="changeWeek(1)"
+          class="nav-btn"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -30,51 +34,59 @@
           v-for="(label, i) in dayLabels"
           :key="i"
           class="day-tab"
-          :class="{ 'day-tab--active': activeDay === i + 1 }"
+          :class="{ 'day-tab--active': activeDay === i + 1, 'day-tab--today': isToday(i + 1) }"
           @click="activeDay = i + 1"
         >
-          <span class="day-tab-label">{{ label }}</span>
-          <span v-if="isToday(i + 1)" class="day-tab-dot"></span>
+          <span class="day-tab-week">{{ shortLabels[i] }}</span>
+          <span v-if="isToday(i + 1)" class="day-tab-today-badge">今</span>
         </div>
       </div>
     </div>
 
     <!-- ===== 课表网格 ===== -->
-    <div class="flex-1 overflow-y-auto overflow-x-hidden" ref="gridWrap">
-      <div class="schedule-grid">
-        <!-- 节次标签（左侧） -->
-        <div
-          v-for="p in totalPeriods"
-          :key="'lbl-' + p"
-          class="period-label"
-          :style="{ gridRow: p + 1 }"
-        >
-          {{ p }}
-        </div>
-
-        <!-- 背景格子 -->
-        <template v-for="p in totalPeriods" :key="'row-' + p">
+    <div class="flex-1 overflow-y-auto overflow-x-hidden px-1 pt-1" ref="gridWrap">
+      <Transition name="grid-fade" mode="out-in">
+        <div :key="weekNum" class="schedule-grid">
+          <!-- 节次标签（左侧） -->
           <div
-            v-for="d in 7"
-            :key="'cell-' + d + '-' + p"
-            class="grid-cell"
-            :class="{ 'grid-cell--today': isToday(d) }"
-            :style="{ gridColumn: d + 1, gridRow: p + 1 }"
-          />
-        </template>
+            v-for="p in totalPeriods"
+            :key="'lbl-' + p"
+            class="period-label"
+            :style="{ gridRow: p + 1 }"
+          >
+            {{ p }}
+          </div>
 
-        <!-- 课程卡片 -->
-        <div
-          v-for="c in courses"
-          :key="c.id"
-          class="course-card"
-          :style="cardStyle(c)"
-          @click="openDetail(c)"
-        >
-          <div class="course-card-name">{{ c.name }}</div>
-          <div class="course-card-room">{{ c.classroom }}</div>
+          <!-- 背景格子 -->
+          <template v-for="p in totalPeriods" :key="'row-' + p">
+            <div
+              v-for="d in 7"
+              :key="'cell-' + d + '-' + p"
+              class="grid-cell"
+              :class="{ 'grid-cell--today': isToday(d) }"
+              :style="{ gridColumn: d + 1, gridRow: p + 1 }"
+            />
+          </template>
+
+          <!-- 课程卡片 -->
+          <div
+            v-for="c in courses"
+            :key="c.id"
+            class="course-card"
+            :style="cardStyle(c)"
+            @click="openDetail(c)"
+          >
+            <div class="course-card-name">{{ c.name }}</div>
+            <div class="course-card-info">
+              <svg class="w-[10px] h-[10px] opacity-60 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span class="truncate">{{ c.classroom }}</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </Transition>
     </div>
 
     <!-- ===== 课程详情弹窗（底部抽屉） ===== -->
@@ -82,8 +94,8 @@
       <Transition name="drawer">
         <div v-if="detail" class="drawer-mask" @click.self="detail = null">
           <div class="drawer-panel">
-            <!-- 色条 -->
-            <div class="drawer-accent" :style="{ background: colorOf(detail.id) }" />
+            <div class="drawer-accent" :style="{ background: morandiColor(detail.id, 0.7) }" />
+            <div class="drawer-handle" />
 
             <div class="drawer-header">
               <div>
@@ -102,7 +114,7 @@
 
             <div class="drawer-body">
               <div class="drawer-row">
-                <div class="drawer-icon drawer-icon--blue">
+                <div class="drawer-icon" :style="iconBg(detail.id, 'loc')">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -115,7 +127,7 @@
               </div>
 
               <div class="drawer-row">
-                <div class="drawer-icon drawer-icon--green">
+                <div class="drawer-icon" :style="iconBg(detail.id, 'person')">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -127,7 +139,7 @@
               </div>
 
               <div class="drawer-row">
-                <div class="drawer-icon drawer-icon--amber">
+                <div class="drawer-icon" :style="iconBg(detail.id, 'time')">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -143,14 +155,8 @@
             </div>
 
             <div class="drawer-actions">
-              <button
-                @click="$emit('edit', detail); detail = null"
-                class="drawer-btn drawer-btn--edit"
-              >编辑</button>
-              <button
-                @click="$emit('delete', detail.id); detail = null"
-                class="drawer-btn drawer-btn--delete"
-              >删除</button>
+              <button @click="$emit('edit', detail); detail = null" class="drawer-btn drawer-btn--edit">编辑</button>
+              <button @click="$emit('delete', detail.id); detail = null" class="drawer-btn drawer-btn--delete">删除</button>
             </div>
           </div>
         </div>
@@ -160,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
   courses: { type: Array, default: () => [] },
@@ -169,22 +175,24 @@ defineEmits(['edit', 'delete'])
 
 /* ---------- 常量 ---------- */
 const dayLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+const shortLabels = ['一', '二', '三', '四', '五', '六', '日']
 const totalPeriods = 12
 
-const palette = [
-  '#0ea5e9', // sky-500
-  '#10b981', // emerald-500
-  '#8b5cf6', // violet-500
-  '#f59e0b', // amber-500
-  '#f43f5e', // rose-500
-  '#14b8a6', // teal-500
-  '#6366f1', // indigo-500
-  '#ec4899', // pink-500
+// 莫兰迪色系 — 低饱和度、高级灰调
+const morandi = [
+  { base: '#8fa3a0', light: '#b5c7c4' },  // 雾松绿
+  { base: '#b5838d', light: '#d4a5ad' },  // 玫瑰灰
+  { base: '#8a9eb5', light: '#adc1d6' },  // 静谧蓝
+  { base: '#c0a888', light: '#d6c7ad' },  // 暖杏驼
+  { base: '#9a8cb5', light: '#bfb3d4' },  // 淡藤紫
+  { base: '#7ea3a3', light: '#a5c4c4' },  // 雾霭青
+  { base: '#b59f8a', light: '#d4bfb0' },  // 摩卡棕
+  { base: '#8da09a', light: '#b0c2bc' },  // 烟灰绿
 ]
 
 /* ---------- 状态 ---------- */
 const weekNum = ref(1)
-const activeDay = ref(((new Date().getDay() + 6) % 7) + 1) // 1=周一
+const activeDay = ref(((new Date().getDay() + 6) % 7) + 1)
 const detail = ref(null)
 const gridWrap = ref(null)
 
@@ -193,15 +201,44 @@ function isToday(d) {
   return ((new Date().getDay() + 6) % 7) + 1 === d
 }
 
-function colorOf(id) {
-  return palette[(id - 1) % palette.length]
+function changeWeek(delta) {
+  const next = weekNum.value + delta
+  if (next >= 1) weekNum.value = next
+}
+
+function getMorandi(id) {
+  return morandi[(id - 1) % morandi.length]
+}
+
+function morandiColor(id, alpha = 1) {
+  const c = getMorandi(id)
+  if (alpha >= 1) return c.base
+  // hex → rgba
+  const r = parseInt(c.base.slice(1, 3), 16)
+  const g = parseInt(c.base.slice(3, 5), 16)
+  const b = parseInt(c.base.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${alpha})`
 }
 
 function cardStyle(c) {
   return {
     gridColumn: c.day_of_week + 1,
     gridRow: `${c.start_period + 1} / span ${c.duration}`,
-    background: colorOf(c.id),
+    '--card-accent': morandiColor(c.id, 0.85),
+    '--card-glow': morandiColor(c.id, 0.25),
+  }
+}
+
+function iconBg(id, variant) {
+  const m = getMorandi(id)
+  const bgMap = { loc: 0.12, person: 0.10, time: 0.10 }
+  const bg = bgMap[variant] || 0.10
+  const r = parseInt(m.base.slice(1, 3), 16)
+  const g = parseInt(m.base.slice(3, 5), 16)
+  const b = parseInt(m.base.slice(5, 7), 16)
+  return {
+    background: `rgba(${r},${g},${b},${bg})`,
+    color: m.base,
   }
 }
 
@@ -211,65 +248,110 @@ function openDetail(c) {
 </script>
 
 <style scoped>
-/* ========== 星期标签行 ========== */
+/* ===== 根背景 ===== */
+.week-root {
+  background: linear-gradient(180deg, #f5f3f0 0%, #eceae6 100%);
+}
+
+/* ===== 顶部栏（磨砂玻璃） ===== */
+.week-header {
+  background: rgba(245, 243, 240, 0.82);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.week-title-wrap {
+  min-width: 5rem;
+  text-align: center;
+}
+.week-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #3d3d3d;
+  letter-spacing: 0.5px;
+}
+
+/* 周数切换淡入淡出 */
+.week-fade-enter-active,
+.week-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.week-fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.week-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.nav-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #7a7a7a;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-btn:hover { background: rgba(0,0,0,0.04); }
+.nav-btn:active { background: rgba(0,0,0,0.07); color: #3d3d3d; }
+.nav-btn:disabled { opacity: 0.25; pointer-events: none; }
+
+/* ===== 星期标签行 ===== */
 .day-tabs {
   display: grid;
-  grid-template-columns: 2.5rem repeat(7, 1fr);
-  border-top: 1px solid #f3f4f6;
+  grid-template-columns: 2.25rem repeat(7, 1fr);
 }
-.day-tabs-gutter {
-  background: #fafafa;
-}
+.day-tabs-gutter { /* 占位 */ }
+
 .day-tab {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px 0 4px;
+  padding: 8px 0 6px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: color 0.2s;
+}
+.day-tab-week {
   font-size: 12px;
   font-weight: 500;
-  color: #9ca3af;
-  cursor: pointer;
-  position: relative;
-  transition: color 0.15s;
-  user-select: none;
+  color: #a0a0a0;
+  transition: color 0.2s, font-weight 0.2s;
 }
-.day-tab:active {
-  background: #f9fafb;
+.day-tab--active .day-tab-week {
+  color: #3d3d3d;
+  font-weight: 700;
 }
-.day-tab--active {
-  color: #2563eb;
-}
-.day-tab--active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 25%;
-  right: 25%;
-  height: 2px;
-  border-radius: 1px;
-  background: #2563eb;
-}
-.day-tab-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #2563eb;
-  margin-top: 2px;
+.day-tab--today .day-tab-week {
+  color: #5a7a72;
 }
 
-/* ========== 课表网格 ========== */
+.day-tab-today-badge {
+  margin-top: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+  background: #8fa3a0;
+  border-radius: 6px;
+  padding: 0 5px;
+  line-height: 16px;
+}
+
+/* ===== 课表网格 ===== */
 .schedule-grid {
   display: grid;
-  grid-template-columns: 2.5rem repeat(7, 1fr);
-  /* 第一行是表头高度（隐藏，靠 sticky 顶栏替代），后面 12 行是节次 */
-  grid-template-rows: 0px repeat(12, var(--cell-h, 4rem));
+  grid-template-columns: 2.25rem repeat(7, 1fr);
+  grid-template-rows: 0px repeat(12, var(--cell-h, 4.2rem));
   width: 100%;
+  gap: 3px;
 }
-
 @media (min-width: 640px) {
-  .schedule-grid {
-    --cell-h: 3.25rem;
-  }
+  .schedule-grid { --cell-h: 3.25rem; gap: 4px; }
 }
 
 .period-label {
@@ -277,200 +359,226 @@ function openDetail(c) {
   align-items: center;
   justify-content: center;
   font-size: 10px;
-  color: #9ca3af;
-  background: #fafafa;
-  border-bottom: 1px solid #f3f4f6;
+  font-weight: 500;
+  color: #b0b0b0;
   user-select: none;
 }
 
 .grid-cell {
-  border-bottom: 1px solid #f3f4f6;
-  border-right: 1px solid #f9fafb;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.45);
+  transition: background 0.3s;
 }
 .grid-cell--today {
-  background: #eff6ff;
+  background: rgba(143, 163, 160, 0.10);
+  box-shadow: inset 0 0 0 1.5px rgba(143, 163, 160, 0.18);
 }
 
-/* ========== 课程卡片 ========== */
+/* ===== 网格切换淡入 ===== */
+.grid-fade-enter-active,
+.grid-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.grid-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.98);
+}
+.grid-fade-leave-to {
+  opacity: 0;
+  transform: scale(1.02);
+}
+
+/* ===== 课程卡片（玻璃拟态） ===== */
 .course-card {
   margin: 2px;
-  padding: 4px 6px;
-  border-radius: 8px;
-  color: #fff;
+  padding: 6px 8px;
+  border-radius: 14px;
   cursor: pointer;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
   z-index: 1;
-  transition: transform 0.1s, box-shadow 0.1s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  position: relative;
+
+  /* 莫兰迪底色 + 玻璃质感 */
+  background: var(--card-accent);
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
+
+  color: #fff;
+  box-shadow:
+    0 2px 8px var(--card-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
 }
 .course-card:active {
-  transform: scale(0.96);
-  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  transform: scale(0.94);
+  box-shadow: 0 1px 4px var(--card-glow);
 }
 .course-card-name {
   font-size: 11px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-weight: 700;
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: 0.2px;
 }
-.course-card-room {
-  font-size: 10px;
+.course-card-info {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
   opacity: 0.8;
-  margin-top: 1px;
+  margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ========== 底部抽屉 ========== */
+/* ===== 底部抽屉 ===== */
 .drawer-mask {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(60, 60, 60, 0.25);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
 }
 @media (min-width: 640px) {
-  .drawer-mask {
-    align-items: center;
-  }
+  .drawer-mask { align-items: center; }
 }
+
 .drawer-panel {
   position: relative;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
   width: 100%;
   max-width: 24rem;
-  border-radius: 1.25rem 1.25rem 0 0;
-  padding: 1.5rem 1.5rem 2rem;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+  border-radius: 24px 24px 0 0;
+  padding: 12px 24px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.10);
   overflow: hidden;
 }
 @media (min-width: 640px) {
-  .drawer-panel {
-    border-radius: 1.25rem;
-  }
+  .drawer-panel { border-radius: 24px; padding-bottom: 24px; }
 }
+
+.drawer-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #d5d5d5;
+  margin: 0 auto 16px;
+}
+
 .drawer-accent {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 3px;
 }
+
 .drawer-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
 .drawer-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
+  font-size: 20px;
+  font-weight: 800;
+  color: #2d2d2d;
+  letter-spacing: -0.3px;
 }
 .drawer-sub {
   font-size: 13px;
-  color: #6b7280;
-  margin-top: 2px;
+  color: #999;
+  margin-top: 3px;
 }
 .drawer-close {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  color: #9ca3af;
+  border-radius: 12px;
+  color: #aaa;
   transition: background 0.15s;
 }
-.drawer-close:hover {
-  background: #f3f4f6;
-}
+.drawer-close:hover { background: rgba(0,0,0,0.04); }
 
 .drawer-body {
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 .drawer-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 14px;
+  gap: 14px;
 }
 .drawer-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.drawer-icon--blue {
-  background: #eff6ff;
-  color: #3b82f6;
-}
-.drawer-icon--green {
-  background: #ecfdf5;
-  color: #10b981;
-}
-.drawer-icon--amber {
-  background: #fffbeb;
-  color: #f59e0b;
-}
 .drawer-row-label {
   font-size: 11px;
-  color: #9ca3af;
+  color: #aaa;
+  margin-bottom: 1px;
 }
 .drawer-row-value {
+  font-size: 15px;
   font-weight: 600;
-  color: #1f2937;
+  color: #2d2d2d;
 }
 
 .drawer-actions {
   display: flex;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 28px;
 }
 .drawer-btn {
   flex: 1;
-  padding: 10px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 14px;
   font-size: 14px;
   font-weight: 600;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.1s;
 }
+.drawer-btn:active { transform: scale(0.97); }
 .drawer-btn--edit {
-  background: #f3f4f6;
-  color: #374151;
+  background: #f0eeeb;
+  color: #3d3d3d;
 }
-.drawer-btn--edit:active {
-  background: #e5e7eb;
-}
+.drawer-btn--edit:hover { background: #e8e6e2; }
 .drawer-btn--delete {
-  background: #fef2f2;
-  color: #dc2626;
+  background: rgba(181, 131, 141, 0.12);
+  color: #b5838d;
 }
-.drawer-btn--delete:active {
-  background: #fee2e2;
-}
+.drawer-btn--delete:hover { background: rgba(181, 131, 141, 0.20); }
 
-/* ========== 抽屉动画 ========== */
+/* ===== 抽屉动画 ===== */
 .drawer-enter-active,
 .drawer-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.3s ease;
 }
 .drawer-enter-active .drawer-panel,
 .drawer-leave-active .drawer-panel {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .drawer-enter-from,
 .drawer-leave-to {
@@ -483,7 +591,7 @@ function openDetail(c) {
 @media (min-width: 640px) {
   .drawer-enter-from .drawer-panel,
   .drawer-leave-to .drawer-panel {
-    transform: translateY(24px) scale(0.96);
+    transform: translateY(20px) scale(0.96);
   }
 }
 </style>
