@@ -38,6 +38,17 @@
           </div>
         </div>
 
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="form-label">开始时间</label>
+            <input v-model="form.start_time" type="time" class="form-input" />
+          </div>
+          <div>
+            <label class="form-label">结束时间</label>
+            <input v-model="form.end_time" type="time" class="form-input" />
+          </div>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="form-btn form-btn--primary">
             {{ isEdit ? '保存' : '添加' }}
@@ -72,6 +83,8 @@ const form = reactive({
   day_of_week: props.course?.day_of_week || 1,
   start_period: props.course?.start_period || 1,
   duration: props.course?.duration || 2,
+  start_time: props.course?.start_time || '',
+  end_time: props.course?.end_time || '',
 })
 
 function handleSubmit() {

@@ -12,3 +12,5 @@ class Course(Base):
     start_period = Column(Integer, nullable=False)  # 起始节次
     duration = Column(Integer, nullable=False)      # 持续节次
     teacher = Column(String, nullable=True, default="")  # 授课老师
+    start_time = Column(String, nullable=True, default="")  # 开始时间 如 '08:00'
+    end_time = Column(String, nullable=True, default="")    # 结束时间 如 '09:40'

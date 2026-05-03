@@ -8,6 +8,8 @@ class CourseBase(BaseModel):
     start_period: int = Field(..., ge=1, description="起始节次")
     duration: int = Field(..., ge=1, description="持续节次")
     teacher: str = Field("", description="授课老师")
+    start_time: str = Field("", description="开始时间 如 '08:00'")
+    end_time: str = Field("", description="结束时间 如 '09:40'")
 
 
 class CourseCreate(CourseBase):
@@ -21,6 +23,8 @@ class CourseUpdate(BaseModel):
     start_period: int | None = Field(None, ge=1)
     duration: int | None = Field(None, ge=1)
     teacher: str | None = None
+    start_time: str | None = None
+    end_time: str | None = None
 
 
 class CourseOut(CourseBase):

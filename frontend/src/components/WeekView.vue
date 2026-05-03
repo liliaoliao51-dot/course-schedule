@@ -54,7 +54,8 @@
             class="period-label"
             :style="{ gridRow: p + 1 }"
           >
-            {{ p }}
+            <span class="period-num">{{ p }}</span>
+            <span class="period-time">{{ defaultPeriodTime(p) }}</span>
           </div>
 
           <!-- 背景格子 -->
@@ -83,6 +84,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               <span class="truncate">{{ c.classroom }}</span>
+            </div>
+            <div class="course-card-time">
+              {{ courseTimeDisplay(c) }}
             </div>
           </div>
         </div>
@@ -149,6 +153,7 @@
                   <div class="drawer-row-value">
                     {{ dayLabels[detail.day_of_week - 1] }}
                     第{{ detail.start_period }}-{{ detail.start_period + detail.duration - 1 }}节
+                    <span class="drawer-row-time">{{ courseTimeDisplay(detail) }}</span>
                   </div>
                 </div>
               </div>
@@ -177,6 +182,22 @@ defineEmits(['edit', 'delete'])
 const dayLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 const shortLabels = ['一', '二', '三', '四', '五', '六', '日']
 const totalPeriods = 12
+
+// 默认节次时间映射（中国高校常见作息）
+const defaultTimes = {
+  1:  { start: '08:00', end: '08:45' },
+  2:  { start: '08:55', end: '09:40' },
+  3:  { start: '10:00', end: '10:45' },
+  4:  { start: '10:55', end: '11:40' },
+  5:  { start: '14:00', end: '14:45' },
+  6:  { start: '14:55', end: '15:40' },
+  7:  { start: '16:00', end: '16:45' },
+  8:  { start: '16:55', end: '17:40' },
+  9:  { start: '19:00', end: '19:45' },
+  10: { start: '19:55', end: '20:40' },
+  11: { start: '20:50', end: '21:35' },
+  12: { start: '21:45', end: '22:30' },
+}
 
 // 莫兰迪色系 — 低饱和度、高级灰调
 const morandi = [
@@ -240,6 +261,21 @@ function iconBg(id, variant) {
     background: `rgba(${r},${g},${b},${bg})`,
     color: m.base,
   }
+}
+
+function defaultPeriodTime(p) {
+  const t = defaultTimes[p]
+  return t ? t.start : ''
+}
+
+function courseTimeDisplay(c) {
+  // 优先用课程自带时间，否则用默认映射
+  if (c.start_time && c.end_time) {
+    return `${c.start_time} - ${c.end_time}`
+  }
+  const t = defaultTimes[c.start_period]
+  if (t) return `${t.start} - ${t.end}`
+  return ''
 }
 
 function openDetail(c) {
@@ -356,12 +392,22 @@ function openDetail(c) {
 
 .period-label {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  font-weight: 500;
-  color: #b0b0b0;
+  gap: 1px;
   user-select: none;
+}
+.period-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a0a0a0;
+}
+.period-time {
+  font-size: 8px;
+  font-weight: 400;
+  color: #c0c0c0;
+  letter-spacing: 0.2px;
 }
 
 .grid-cell {
@@ -437,6 +483,12 @@ function openDetail(c) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.course-card-time {
+  font-size: 8px;
+  opacity: 0.6;
+  margin-top: 1px;
+  letter-spacing: 0.2px;
 }
 
 /* ===== 底部抽屉 ===== */
@@ -544,6 +596,13 @@ function openDetail(c) {
   font-size: 15px;
   font-weight: 600;
   color: #2d2d2d;
+}
+.drawer-row-time {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 400;
+  color: #999;
+  margin-left: 6px;
 }
 
 .drawer-actions {
