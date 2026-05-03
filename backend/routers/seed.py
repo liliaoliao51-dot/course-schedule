@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database import get_db
-import models
+from backend.database import get_db
+from backend import models
 
 router = APIRouter(prefix="/api/seed", tags=["seed"])
 

@@ -3,8 +3,8 @@
 用法：cd backend && python seed.py
 """
 
-from database import engine, SessionLocal, Base
-import models
+from backend.database import engine, SessionLocal, Base
+from backend import models
 
 # 确保表已创建
 Base.metadata.create_all(bind=engine)

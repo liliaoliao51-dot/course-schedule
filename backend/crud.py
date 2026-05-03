@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-import models
-import schemas
+from backend import models
+from backend import schemas
 
 
 def get_courses(db: Session):

@@ -1,8 +1,8 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database import engine, Base, DATABASE_URL
-from routers import courses, seed
+from backend.database import engine, Base, DATABASE_URL
+from backend.routers import courses, seed
 
 # 如果旧数据库表结构和当前 model 不一致，自动删除重建（仅 SQLite）
 if DATABASE_URL.startswith("sqlite"):
