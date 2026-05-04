@@ -1,17 +1,59 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+eggs/
+*.whl
+
+# 数据库
 *.db
+*.sqlite3
+
+# 环境变量
 .env
+.env.local
+.env.*.local
+
+# 虚拟环境
+venv/
+.venv/
+ENV/
+env/
 
 # Node
 node_modules/
-dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# 前端构建
+frontend/dist/
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Railway / Docker
+.nixpacks/
+.railway/
+
+# 杂项
+*.log
+*.bak
+*.tmp
+*.temp
