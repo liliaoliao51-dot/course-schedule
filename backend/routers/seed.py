@@ -6,7 +6,7 @@ from backend import models
 router = APIRouter(prefix="/api/seed", tags=["seed"])
 
 
-@router.post("/")
+@router.post("")
 def seed_courses(db: Session = Depends(get_db)):
     """清空并预填测试课程数据"""
     db.query(models.Course).delete()

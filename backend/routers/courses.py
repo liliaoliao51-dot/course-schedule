@@ -7,12 +7,12 @@ from backend import crud
 router = APIRouter(prefix="/api/courses", tags=["courses"])
 
 
-@router.get("/", response_model=list[schemas.CourseOut])
+@router.get("", response_model=list[schemas.CourseOut])
 def list_courses(db: Session = Depends(get_db)):
     return crud.get_courses(db)
 
 
-@router.post("/", response_model=schemas.CourseOut, status_code=201)
+@router.post("", response_model=schemas.CourseOut, status_code=201)
 def create_course(course: schemas.CourseCreate, db: Session = Depends(get_db)):
     return crud.create_course(db, course)
 

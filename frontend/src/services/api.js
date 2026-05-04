@@ -57,10 +57,10 @@ async function request(url, options = {}) {
   }
 }
 
-export const getCourses = () => request('/courses/')
+export const getCourses = () => request('/courses')
 
 export const createCourse = (data) =>
-  request('/courses/', { method: 'POST', body: JSON.stringify(data) })
+  request('/courses', { method: 'POST', body: JSON.stringify(data) })
 
 export const updateCourse = (id, data) =>
   request(`/courses/${id}`, { method: 'PUT', body: JSON.stringify(data) })

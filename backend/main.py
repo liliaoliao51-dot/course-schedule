@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from backend.database import engine, Base, DATABASE_URL
 from backend.routers import courses, seed
 
@@ -22,22 +23,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="课表管理系统")
 
-# CORS 配置 - 允许 Vercel 前端访问
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",           # 本地开发
-    "http://localhost:3000",           # 本地开发（备用端口）
-    "https://*.vercel.app",            # Vercel 部署域名
-]
-
-# 从环境变量读取额外允许的域名
-import os
-extra_origins = os.getenv("ALLOWED_ORIGINS", "")
-if extra_origins:
-    ALLOWED_ORIGINS.extend(extra_origins.split(","))
-
+# CORS 配置 - 允许所有来源访问（开发阶段）
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 开发阶段允许所有，生产环境建议限制
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
